@@ -45,7 +45,7 @@ jobs:
           sudo apt update && sudo apt install -y zip wget 
           sudo chmod +x re-zipper.sh
           ./re-zipper.sh  https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar linux-reclient
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-reclient_artifact
           path: ./linux-reclient.zip
