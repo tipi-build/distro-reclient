@@ -42,7 +42,6 @@ jobs:
       - uses: actions/checkout@v3
       - name: install and build 
         run: |
-          sudo apt update && sudo apt install -y zip wget 
           wget "https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar" -O downloaded_file.tar
           mkdir linux-reclient
           tar -xf downloaded_file.tar -C linux-reclient
