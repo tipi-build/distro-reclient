@@ -1,0 +1,59 @@
+name: build
+# This workflow is  triggered on pushes, pull requests to the repository.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+env:
+  version_in_development: v0.0.0-cmake-re
+
+jobs:
+  draft-release:
+    name: Draft Release if develop branch
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.draft_release.outputs.upload_url }}  
+      release_id: ${{ steps.draft_release.outputs.id }}  
+    steps:
+      - name: Create Release
+        id: draft_release
+        if: github.ref == 'refs/heads/main' || github.head_ref == 'feature/add-script'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          owner: tipi-build 
+          repo: re-zipper-package
+          commitish: main
+          tag_name: ${{ env.version_in_development }}
+          release_name: ${{ env.version_in_development }} ${{ github.sha }}
+          draft: true
+          prerelease: true
+
+  build-linux:
+    name: build-linux
+    runs-on: ubuntu-latest
+    needs: draft-release
+    steps:
+      - uses: actions/checkout@v3
+      - name: install and build 
+        run: |
+          sudo apt update && sudo apt install -y zip wget 
+          sudo chmod +x re-zipper.sh
+          ./re-zipper.sh  https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar linux-reclient
+      - uses: actions/upload-artifact@v3
+        with:
+          name: linux-reclient_artifact
+          path: ./linux-reclient.zip
+      - name: Upload linux-reclient package
+        if: ${{needs.draft-release.outputs.upload_url}}
+        id: upload-tipi-reclient-package 
+        uses: actions/upload-release-asset@v1
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{needs.draft-release.outputs.upload_url}}
+          asset_path: ./linux-reclient.zip
+          asset_name: linux-reclient.zip
+          asset_content_type: application/zip
