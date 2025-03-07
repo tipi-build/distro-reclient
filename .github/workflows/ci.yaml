@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
 env:
-  version_in_development: v0.0.0-cmake-re
+  version_in_development: v0.0.0
 permissions:
   contents: write
 
@@ -43,8 +43,11 @@ jobs:
       - name: install and build 
         run: |
           sudo apt update && sudo apt install -y zip wget 
-          sudo chmod +x re-zipper.sh
-          ./re-zipper.sh  https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar linux-reclient
+          wget "https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar" -O downloaded_file.tar
+          mkdir linux-reclient
+          tar -xf downloaded_file.tar -C linux-reclient
+          zip -r linux-reclient.zip linux-reclient/
+          rm -rf downloaded_file.tar linux-reclient/
       - uses: actions/upload-artifact@v4
         with:
           name: linux-reclient_artifact
