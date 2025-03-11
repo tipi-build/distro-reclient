@@ -27,7 +27,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           owner: tipi-build 
-          repo: re-zipper-package
+          repo: distro-reclient
           commitish: main
           tag_name: ${{ env.version_in_development }}
           release_name: ${{ env.version_in_development }} ${{ github.sha }}
@@ -46,11 +46,6 @@ jobs:
           mkdir linux-reclient
           tar -xf downloaded_file.tar -C linux-reclient
           zip -r linux-reclient.zip linux-reclient/
-          rm -rf downloaded_file.tar linux-reclient/
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-reclient_artifact
-          path: ./linux-reclient.zip
       - name: Upload linux-reclient package
         if: ${{needs.draft-release.outputs.upload_url}}
         id: upload-tipi-reclient-package 
