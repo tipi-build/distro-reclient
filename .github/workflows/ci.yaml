@@ -6,19 +6,27 @@ on:
       - main
   pull_request:
 env:
-  version_in_development: v0.0.0
+  version_in_development: v0.0.1
 permissions:
   contents: write
 
 
 jobs:
-  draft-release:
-    name: Draft Release if develop branch
+  build-linux:
+    name: build-linux
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.draft_release.outputs.upload_url }}  
-      release_id: ${{ steps.draft_release.outputs.id }}  
     steps:
+      - uses: actions/checkout@v3
+      - name: install and build 
+        run: |
+          wget "https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar" -O downloaded_file.tar
+          mkdir linux-reclient
+          tar -xf downloaded_file.tar -C linux-reclient
+          zip -r linux-reclient.zip linux-reclient/
+          checksum=$(sha1sum "linux-reclient.zip" | awk '{print $1}')
+
+          echo "## Archives Checksums" > Release.txt
+          echo "linux-reclient.zip:$checksum" >> Release.txt
       - name: Create Release
         id: draft_release
         if: github.ref == 'refs/heads/main' || github.head_ref == 'feature/add-script'
@@ -33,27 +41,15 @@ jobs:
           release_name: ${{ env.version_in_development }} ${{ github.sha }}
           draft: true
           prerelease: true
-
-  build-linux:
-    name: build-linux
-    runs-on: ubuntu-latest
-    needs: draft-release
-    steps:
-      - uses: actions/checkout@v3
-      - name: install and build 
-        run: |
-          wget "https://storage.googleapis.com/engflow-tools-public/reclient/1740689172.tar" -O downloaded_file.tar
-          mkdir linux-reclient
-          tar -xf downloaded_file.tar -C linux-reclient
-          zip -r linux-reclient.zip linux-reclient/
+          body_path: Release.txt
       - name: Upload linux-reclient package
-        if: ${{needs.draft-release.outputs.upload_url}}
+        if: ${{steps.draft_release.outputs.upload_url}}
         id: upload-tipi-reclient-package 
         uses: actions/upload-release-asset@v1
         env:
            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{needs.draft-release.outputs.upload_url}}
+          upload_url: ${{steps.draft_release.outputs.upload_url}}
           asset_path: ./linux-reclient.zip
           asset_name: linux-reclient.zip
           asset_content_type: application/zip
